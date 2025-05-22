@@ -278,7 +278,7 @@ namespace HES
                 if (f.Exists)
                 {
 
-                    if (f.Extension.EqualsIgnoreCaseAndAccents(".pdf"))
+                    if (f.Extension.FlatEqual(".pdf"))
                     {
                         AdicionarLogoPdf(logoPath);
                     }
