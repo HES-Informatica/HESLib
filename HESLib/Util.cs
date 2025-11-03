@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using Extensions.BR;
 using HES;
 using HES.Documents;
 using HES.Documents.Contents.Composition;
@@ -51,7 +52,7 @@ namespace Extensions
         internal static string Formatar(this TimeSpan? timeSpan) => timeSpan.HasValue ? timeSpan.Value.ToString() : string.Empty;
 
 
-        internal static string FormatarDataHora(this DateTime? dateTime) => dateTime.HasValue ? dateTime.Value.ToString("dd/MM/yyyy HH:mm:ss") : string.Empty;
+  
 
         internal static string FormatarMoeda(this double? number) => number.HasValue ? number.Value.ToString("C", Cultura) : string.Empty;
 

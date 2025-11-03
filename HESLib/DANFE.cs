@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Extensions;
 using Extensions.ComplexText;
+using Extensions.Files;
 using HES.Blocos;
 using HES.Bytes;
 using HES.Documents.Contents.Fonts;
@@ -122,7 +123,9 @@ namespace HES
 
             if (FilePath.IsFilePath())
             {
-                return new FileInfo(FilePath).ReplaceExtension("pdf").FullName.WriteDebug("PDF FilePath");
+                var file = new FileInfo(FilePath).ReplaceExtension("pdf").FullName;
+                file.WriteDebug("PDF FilePath");
+                return file;
             }
             else
             {

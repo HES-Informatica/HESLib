@@ -1312,7 +1312,7 @@ namespace HES.Documents.Contents.Composition
               G. Adam Stanislav, whose article was greatly inspirational:
               see http://www.whizkidtech.redprince.net/bezier/circle/).
             */
-            Extensions.Util.FixOrder(ref startAngle, ref endAngle);
+            (startAngle, endAngle) = Extensions.Util.FixOrder(startAngle, endAngle);
 
 
             double radiusX = location.Width / 2;

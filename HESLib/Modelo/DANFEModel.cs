@@ -459,7 +459,7 @@ namespace HES.Modelo
 
                     if (ContingenciaDataHora.HasValue)
                     {
-                        sb.Append($" - {ContingenciaDataHora.FormatarDataHora()}");
+                        sb.Append($" - {ContingenciaDataHora.FormatarDataBrasileira()}");
                     }
 
                     if (Extensions.Util.IsValid(ContingenciaJustificativa))
