@@ -147,7 +147,7 @@ namespace HES
             {
                 p.DesenharCreditos("Impresso com H&S Technologies - hes.com.br");
             }
-            else if (Creditos.IsValid())
+            else if (Creditos.IsNotBlank())
             {
                 p.DesenharCreditos(Creditos);
             }
@@ -215,7 +215,7 @@ namespace HES
         /// <summary>
         /// Empresa responsavel por gerar o DANFE
         /// </summary>
-        public static string Autor { get; set; } = Extensions.Util.GetCompanyName();
+        public static string Autor { get; set; } = "H&S Technologies";
 
         /// <summary>
         /// Nota rodapé adicionada em cada folha do DANFE
@@ -294,10 +294,7 @@ namespace HES
                         throw new Exception("Arquivo não é um PDF ou JPEG");
                     }
                 }
-                else
-                {
-                    throw new FileNotFoundException("Arquivo não existe");
-                }
+               
             }
         }
 

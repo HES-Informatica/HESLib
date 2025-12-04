@@ -25,7 +25,7 @@ namespace HES
 
         public Estilo(pcf.Font fontRegular, pcf.Font fontBold, pcf.Font fontItalic, float tamanhoFonteCampoCabecalho = 6, float tamanhoFonteConteudo = 10)
         {
-            PaddingHorizontal = 0.75F;
+            PaddingHorizontal = 2.5F;
             PaddingSuperior = 0.65F;
             PaddingInferior = 0.3F;
 
@@ -33,12 +33,12 @@ namespace HES
             FonteInternaNegrito = fontBold;
             FonteInternaItalico = fontItalic;
 
-            FonteCampoCabecalho = CriarFonteRegular(tamanhoFonteCampoCabecalho);
-            FonteCampoConteudo = CriarFonteRegular(tamanhoFonteConteudo);
-            FonteCampoConteudoNegrito = CriarFonteNegrito(tamanhoFonteConteudo);
-            FonteBlocoCabecalho = CriarFonteRegular(7);
-            FonteNumeroFolhas = CriarFonteNegrito(10F);
-            FonteTamanhoMinimo = 5.75F;
+            FonteCampoCabecalho = CriarFonteRegular(tamanhoFonteCampoCabecalho - 1);
+            FonteCampoConteudo = CriarFonteRegular(tamanhoFonteConteudo - 1);
+            FonteCampoConteudoNegrito = CriarFonteNegrito(tamanhoFonteConteudo - 1);
+            FonteBlocoCabecalho = CriarFonteRegular(6);
+            FonteNumeroFolhas = CriarFonteNegrito(9F);
+            FonteTamanhoMinimo = 4.75F;
         }
 
         public Fonte CriarFonteRegular(float emSize) => new Fonte(FonteInternaRegular, emSize);

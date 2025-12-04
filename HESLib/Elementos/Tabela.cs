@@ -36,7 +36,7 @@ namespace HES
             PaddingSuperior = 0.75F;
             PaddingInferior = 0.3F;
 
-            // 7.7.7 Conteúdo dos Campos do Quadro “Dados dos Produtos/Serviços”
+            // 7.7.7 Conteúdo dos Campos do Quadro "Dados dos Produtos/Serviços"
             // Deverá ter tamanho mínimo de seis(6) pontos, ou 17 CPP.
 
             FonteCorpo = estilo.CriarFonteRegular(6F);

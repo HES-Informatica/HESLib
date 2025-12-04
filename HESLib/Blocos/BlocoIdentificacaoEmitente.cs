@@ -18,10 +18,10 @@ namespace HES.Blocos
 
             var textoConsulta = new TextoSimples(Estilo, Extensions.Util.TextoConsulta)
             {
-                Height = 8,
+                Height = 12,
                 AlinhamentoHorizontal = AlinhamentoHorizontal.Centro,
                 AlinhamentoVertical = AlinhamentoVertical.Centro,
-                TamanhoFonte = 9
+                TamanhoFonte = 7
             };
 
             var campoChaveAcesso = new Campo("Chave de Acesso", ViewModel.ChaveAcesso, estilo, AlinhamentoHorizontal.Centro) { Height = Extensions.Util.CampoAltura };
