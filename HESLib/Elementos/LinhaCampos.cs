@@ -7,7 +7,7 @@
     {
         public Estilo Estilo { get; private set; }
 
-        public LinhaCampos(Estilo estilo, float width, float height = Extensions.Util.CampoAltura) : base()
+        public LinhaCampos(Estilo estilo, float width, float height = Constantes.CampoAltura) : base()
         {
             Estilo = estilo;
             SetSize(width, height);

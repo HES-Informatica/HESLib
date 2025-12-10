@@ -87,30 +87,64 @@ namespace HES.Modelo
         {
             try
             {
-                ProcNFe nfe = null;
+                string xmlContent = nfeReader.ReadToEnd();
+                
+                ProcNFe procNfe = null;
+                NFe nfeSimples = null;
                 ProcEventoNFe cce = null;
-                XmlSerializer nfeSerializer = new XmlSerializer(typeof(ProcNFe));
-                XmlSerializer cceSerializer = new XmlSerializer(typeof(ProcEventoNFe));
-                nfe = (ProcNFe)nfeSerializer.Deserialize(nfeReader);
-                if (cceReader != null)
+                
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(xmlContent);
+                
+                string rootElementName = xmlDoc.DocumentElement.LocalName;
+                
+                if (rootElementName == "nfeProc")
                 {
-                    cce = (ProcEventoNFe)cceSerializer.Deserialize(cceReader);
+                    XmlSerializer nfeSerializer = new XmlSerializer(typeof(ProcNFe));
+                    using (StringReader sr = new StringReader(xmlContent))
+                    {
+                        procNfe = (ProcNFe)nfeSerializer.Deserialize(sr);
+                    }
+                    
+                    if (cceReader != null)
+                    {
+                        XmlSerializer cceSerializer = new XmlSerializer(typeof(ProcEventoNFe));
+                        cce = (ProcEventoNFe)cceSerializer.Deserialize(cceReader);
+                    }
+                    
+                    return Create(procNfe, cce);
                 }
-                return Create(nfe, cce);
+                else if (rootElementName == "NFe")
+                {
+                    XmlSerializer nfeSerializer = new XmlSerializer(typeof(NFe));
+                    using (StringReader sr = new StringReader(xmlContent))
+                    {
+                        nfeSimples = (NFe)nfeSerializer.Deserialize(sr);
+                    }
+                    
+                    if (cceReader != null)
+                    {
+                        XmlSerializer cceSerializer = new XmlSerializer(typeof(ProcEventoNFe));
+                        cce = (ProcEventoNFe)cceSerializer.Deserialize(cceReader);
+                    }
+                    
+                    return Create(nfeSimples, cce);
+                }
+                else
+                {
+                    throw new XmlException($"Elemento raiz '{rootElementName}' não reconhecido. Esperado 'nfeProc' ou 'NFe'.");
+                }
             }
-            catch (InvalidOperationException e)
+            catch (Exception e)
             {
                 if (e.InnerException is XmlException ex)
                 {
                     throw new Exception(string.Format("Não foi possível interpretar o Xml. Linha {0} Posição {1}.", ex.LineNumber, ex.LinePosition));
                 }
 
-                throw new XmlException("O Xml não parece ser uma NF-e processada.", e);
+                throw new XmlException("O Xml não parece ser uma NF-e válida.", e);
             }
-            catch (Exception ee)
-            {
-                throw ee;
-            }
+          
 
         }
 
@@ -409,10 +443,10 @@ namespace HES.Modelo
                     if (!string.IsNullOrEmpty(InformacoesAdicionaisFisco))
                         sb.AppendChaveValor("Inf. fisco", InformacoesAdicionaisFisco);
 
-                    if (!string.IsNullOrEmpty(Pedido) && !Extensions.Util.StringContemChaveValor(InformacoesComplementares, "Pedido", Pedido))
+                    if (!string.IsNullOrEmpty(Pedido) && !Utils.StringContemChaveValor(InformacoesComplementares, "Pedido", Pedido))
                         sb.AppendChaveValor("Pedido", Pedido);
 
-                    if (!string.IsNullOrEmpty(Contrato) && !Extensions.Util.StringContemChaveValor(InformacoesComplementares, "Contrato", Contrato))
+                    if (!string.IsNullOrEmpty(Contrato) && !Utils.StringContemChaveValor(InformacoesComplementares, "Contrato", Contrato))
                         sb.AppendChaveValor("Contrato", Contrato);
 
                     if (!string.IsNullOrEmpty(NotaEmpenho))
@@ -678,7 +712,7 @@ namespace HES.Modelo
 
             var infoProto = procNfe.protNFe.infProt;
 
-            model.ProtocoloAutorizacao = string.Format(Extensions.Util.Cultura, "{0} - {1}", infoProto.nProt, infoProto.dhRecbto.DateTimeOffsetValue.DateTime);
+            model.ProtocoloAutorizacao = string.Format(Utils.Cultura, "{0} - {1}", infoProto.nProt, infoProto.dhRecbto.DateTimeOffsetValue.DateTime);
 
             ExtrairDatas(model, procNfe.NFe.infNFe);
 
@@ -707,6 +741,200 @@ namespace HES.Modelo
             return model;
         }
 
+        public static DANFEModel Create(NFe nfe, ProcEventoNFe procEventoNFe = null)
+        {
+            var model = new DANFEModel();
+
+            var xmlDoc = new XmlDocument();
+            var nfeElement = xmlDoc.CreateElement("NFe", Namespaces.NFe);
+            xmlDoc.AppendChild(nfeElement);
+            model.XML = xmlDoc.OuterXml;
+
+            model.TipoEmissao = nfe.infNFe.ide.tpEmis;
+
+            if (nfe.infNFe.ide.mod != 55)
+            {
+                throw new NotSupportedException("Somente o mod==55 está implementado.");
+            }
+
+            if (!FormasEmissaoSuportadas.Contains(model.TipoEmissao))
+            {
+                throw new NotSupportedException($"O tpEmis {nfe.infNFe.ide.tpEmis} não é suportado.");
+            }
+
+            model.Orientacao = nfe.infNFe.ide.tpImp == 1 ? Orientacao.Retrato : Orientacao.Paisagem;
+            model.ChaveAcesso = nfe.infNFe.Id;
+            
+            model.TipoAmbiente = nfe.infNFe.ide.tpAmb;
+            model.ChaveAcesso.Nota = nfe.infNFe.ide.nNF;
+            model.ChaveAcesso.Serie = nfe.infNFe.ide.serie;
+            model.NaturezaOperacao = nfe.infNFe.ide.natOp;
+            model.TipoNF = nfe.infNFe.ide.tpNF;
+
+            model.Emitente = CreateEmpresaFrom(nfe.infNFe.emit);
+            model.Destinatario = CreateEmpresaFrom(nfe.infNFe.dest);
+
+            if (nfe.infNFe.retirada != null)
+            {
+                model.LocalRetirada = CreateLocalRetiradaEntrega(nfe.infNFe.retirada);
+            }
+
+            if (nfe.infNFe.entrega != null)
+            {
+                model.LocalEntrega = CreateLocalRetiradaEntrega(nfe.infNFe.entrega);
+            }
+
+            model.NotasFiscaisReferenciadas = nfe.infNFe.ide.NFref.Select(x => x.ToString()).ToList();
+
+            if (nfe.infNFe.compra != null)
+            {
+                model.Contrato = nfe.infNFe.compra.xCont;
+                model.NotaEmpenho = nfe.infNFe.compra.xNEmp;
+                model.Pedido = nfe.infNFe.compra.xPed;
+            }
+
+            foreach (var det in nfe.infNFe.det)
+            {
+                var produto = new ProdutoViewModel
+                {
+                    Codigo = det.prod.cProd,
+                    Descricao = det.prod.xProd,
+                    Ncm = det.prod.NCM,
+                    Cfop = det.prod.CFOP,
+                    Unidade = det.prod.uCom,
+                    Quantidade = det.prod.qCom,
+                    ValorUnitario = det.prod.vUnCom,
+                    ValorTotal = det.prod.vProd,
+                    InformacoesAdicionais = det.infAdProd
+                };
+
+                var imposto = det.imposto;
+
+                if (imposto != null)
+                {
+                    if (imposto.ICMS != null)
+                    {
+                        var icms = imposto.ICMS.ICMS;
+
+                        if (icms != null)
+                        {
+                            produto.ValorIcms = icms.vICMS;
+                            produto.BaseIcms = icms.vBC;
+                            produto.AliquotaIcms = icms.pICMS;
+                            produto.OCst = icms.orig + icms.CST + icms.CSOSN;
+                        }
+                    }
+
+                    if (imposto.IPI != null)
+                    {
+                        var ipi = imposto.IPI.IPITrib;
+
+                        if (ipi != null)
+                        {
+                            produto.ValorIpi = ipi.vIPI;
+                            produto.AliquotaIpi = ipi.pIPI;
+                        }
+                    }
+                }
+
+                model.Produtos.Add(produto);
+            }
+
+            if (nfe.infNFe.cobr != null)
+            {
+                foreach (var item in nfe.infNFe.cobr.dup)
+                {
+                    var duplicata = new DuplicataViewModel
+                    {
+                        Numero = item.nDup,
+                        Valor = item.vDup,
+                        Vecimento = item.dVenc
+                    };
+
+                    model.Duplicatas.Add(duplicata);
+                }
+            }
+
+            model.CalculoImposto = CriarCalculoImpostoViewModel(nfe.infNFe.total.ICMSTot);
+
+            var issqnTotal = nfe.infNFe.total.ISSQNtot;
+
+            if (issqnTotal != null)
+            {
+                var c = model.CalculoIssqn;
+                c.InscricaoMunicipal = nfe.infNFe.emit.IM;
+                c.BaseIssqn = issqnTotal.vBC;
+                c.ValorTotalServicos = issqnTotal.vServ;
+                c.ValorIssqn = issqnTotal.vISS;
+                c.Mostrar = true;
+            }
+
+            var transp = nfe.infNFe.transp;
+            var transportadora = transp.transporta;
+            var transportadoraModel = model.Transportadora;
+
+            transportadoraModel.ModalidadeFrete = (int)transp.modFrete;
+
+            if (transp.veicTransp != null)
+            {
+                transportadoraModel.VeiculoUf = transp.veicTransp.UF;
+                transportadoraModel.CodigoAntt = transp.veicTransp.RNTC;
+                transportadoraModel.Placa = transp.veicTransp.placa;
+            }
+
+            if (transportadora != null)
+            {
+                transportadoraModel.RazaoSocial = transportadora.xNome;
+                transportadoraModel.StateCode = transportadora.UF;
+                transportadoraModel.CnpjCpf = transportadora.CNPJ.IfBlank(transportadora.CPF);
+                transportadoraModel.Street = transportadora.xEnder;
+                transportadoraModel.City = transportadora.xMun;
+                transportadoraModel.Ie = transportadora.IE;
+            }
+
+            var vol = transp.vol.FirstOrDefault();
+
+            if (vol != null)
+            {
+                transportadoraModel.QuantidadeVolumes = vol.qVol;
+                transportadoraModel.Especie = vol.esp;
+                transportadoraModel.Marca = vol.marca;
+                transportadoraModel.Numeracao = vol.nVol;
+                transportadoraModel.PesoBruto = vol.pesoB;
+                transportadoraModel.PesoLiquido = vol.pesoL;
+            }
+
+            var infAdic = nfe.infNFe.infAdic;
+            if (infAdic != null)
+            {
+                model.InformacoesComplementares = nfe.infNFe.infAdic.infCpl;
+                model.InformacoesAdicionaisFisco = nfe.infNFe.infAdic.infAdFisco;
+            }
+
+            ExtrairDatas(model, nfe.infNFe);
+
+            if (model.TipoEmissao == FormaEmissao.ContingenciaSVCAN || model.TipoEmissao == FormaEmissao.ContingenciaSVCRS)
+            {
+                model.ContingenciaDataHora = nfe.infNFe.ide.dhCont?.DateTimeOffsetValue.DateTime;
+                model.ContingenciaJustificativa = nfe.infNFe.ide.xJust;
+            }
+
+            if (procEventoNFe != null)
+            {
+                model.SequenciaCorrecao = procEventoNFe.Evento?.InfEvento?.NSeqEvento ?? 0;
+                model.ProtocoloCorrecao = procEventoNFe.RetEvento?.InfEvento?.NProt;
+                model.DataHoraCorrecao = procEventoNFe.Evento?.InfEvento?.DhEvento;
+
+                var det = procEventoNFe.Evento?.InfEvento?.DetEvento;
+                if (det != null)
+                {
+                    model.TextoCondicaoDeUso = det.XCondUso?.Replace(";", Environment.NewLine);
+                    model.TextoCorrecao = det.XCorrecao;
+                }
+            }
+
+            return model;
+        }
         /// <summary>
         /// Cria o modelo a partir de um arquivo xml.
         /// </summary>

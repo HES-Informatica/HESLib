@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using Extensions;
-using HES.Documents.Contents.ColorSpaces;
 using HES.Graphics;
+using org.pdfclown.documents.contents.composition;
 
 namespace HES
 {
@@ -166,8 +166,8 @@ namespace HES
                     if (LinhaAtual > 0)
                     {
                         gfx.PrimitiveComposer.BeginLocalState();
-                        gfx.PrimitiveComposer.SetStrokeColor(new DeviceRGBColor(0.5, 0.5, 0.5));
-                        gfx.PrimitiveComposer.SetLineDash(new HES.Documents.Contents.LineDash(new double[] { 6, 1 }));
+                        gfx.PrimitiveComposer.SetStrokeColor(new org.pdfclown.documents.contents.colorSpaces.DeviceRGBColor(0.5, 0.5, 0.5));
+                        gfx.PrimitiveComposer.SetLineDash(new org.pdfclown.documents.contents.LineDash(new double[] { 6, 1 }));
                         gfx.PrimitiveComposer.DrawLine(new PointF(BoundingBox.Left, _DY1).ToPointMeasure(), new PointF(BoundingBox.Right, _DY1).ToPointMeasure());
                         gfx.PrimitiveComposer.Stroke();
                         gfx.PrimitiveComposer.End();
@@ -191,6 +191,6 @@ namespace HES
 
 
 
-        public override bool PossuiContorno => false;
+        public override bool PossuiContono => false;
     }
 }

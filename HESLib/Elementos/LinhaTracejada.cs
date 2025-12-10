@@ -20,7 +20,7 @@ namespace HES
             base.Draw(gfx);
 
             gfx.PrimitiveComposer.BeginLocalState();
-            gfx.PrimitiveComposer.SetLineDash(new HES.Documents.Contents.LineDash(new double[] { 3, 2 }));
+            gfx.PrimitiveComposer.SetLineDash(new org.pdfclown.documents.contents.LineDash(new double[] { 3, 2 }));
             gfx.PrimitiveComposer.DrawLine(new PointF(BoundingBox.Left, Y + Margin).ToPointMeasure(), new PointF(BoundingBox.Right, Y + Margin).ToPointMeasure());
             gfx.PrimitiveComposer.Stroke();
             gfx.PrimitiveComposer.End();

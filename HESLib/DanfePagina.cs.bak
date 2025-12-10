@@ -1,0 +1,226 @@
+﻿using System;
+using System.Drawing;
+using System.Linq;
+using Extensions;
+using HES.Blocos;
+using HES.Graphics;
+using org.pdfclown.documents;
+using org.pdfclown.documents.contents.composition;
+using org.pdfclown.files;
+
+using PdfFile = org.pdfclown.files.File;
+
+namespace HES
+{
+    /// <summary>
+    /// Representa uma página do DANFE com todos os seus elementos gráficos.
+    /// Gerencia o layout, desenho de blocos e elementos visuais da página.
+    /// </summary>
+    internal class DanfePagina
+    {
+        /// <summary>
+        /// Referência ao DANFE pai.
+        /// </summary>
+        public DANFE Danfe { get; private set; }
+
+        /// <summary>
+        /// Página PDF do PDF Clown.
+        /// </summary>
+        public Page PdfPage { get; private set; }
+
+        /// <summary>
+        /// Compositor primitivo para desenho no PDF.
+        /// </summary>
+        public PrimitiveComposer PrimitiveComposer { get; private set; }
+
+        /// <summary>
+        /// Contexto gráfico de alto nível.
+        /// </summary>
+        public Gfx Gfx { get; private set; }
+
+        /// <summary>
+        /// Retângulo onde será desenhado o número de folhas.
+        /// </summary>
+        public RectangleF RetanguloNumeroFolhas { get; set; }
+
+        /// <summary>
+        /// Retângulo disponível para o corpo do documento (tabela de produtos).
+        /// </summary>
+        public RectangleF RetanguloCorpo { get; private set; }
+
+        /// <summary>
+        /// Retângulo disponível para desenho após margens.
+        /// </summary>
+        public RectangleF RetanguloDesenhavel { get; private set; }
+
+        /// <summary>
+        /// Retângulo para créditos do rodapé.
+        /// </summary>
+        public RectangleF RetanguloCreditos { get; private set; }
+
+        /// <summary>
+        /// Retângulo total da página.
+        /// </summary>
+        public RectangleF Retangulo { get; private set; }
+
+        /// <summary>
+        /// Cria uma nova página do DANFE.
+        /// </summary>
+        /// <param name="danfe">Instância do DANFE pai.</param>
+        /// <param name="pdf">Arquivo PDF onde a página será adicionada.</param>
+        public DanfePagina(DANFE danfe, PdfFile pdf)
+        {
+            danfe = danfe ?? throw new ArgumentNullException(nameof(pdf));
+            pdf = pdf ?? throw new ArgumentNullException(nameof(danfe));
+            this.Danfe = danfe;
+            PdfPage = new Page(pdf.Document);
+            pdf.Document.Pages.Add(PdfPage);
+
+            PrimitiveComposer = new PrimitiveComposer(PdfPage);
+            Gfx = new Gfx(PrimitiveComposer);
+
+            // Define dimensões da página baseado na orientação
+            if (danfe.ViewModel.Orientacao == Orientacao.Retrato)
+                Retangulo = new RectangleF(0, 0, Extensions.Util.A4Largura, Extensions.Util.A4Altura);
+            else
+                Retangulo = new RectangleF(0, 0, Extensions.Util.A4Altura, Extensions.Util.A4Largura);
+
+            // Calcula retângulos com margens
+            RetanguloDesenhavel = Retangulo.InflatedRetangle(danfe.ViewModel.Margem);
+            RetanguloCreditos = new RectangleF(
+                RetanguloDesenhavel.X,
+                RetanguloDesenhavel.Bottom + danfe.EstiloPadrao.PaddingSuperior,
+                RetanguloDesenhavel.Width,
+                Retangulo.Height - RetanguloDesenhavel.Height - danfe.EstiloPadrao.PaddingSuperior
+            );
+            PdfPage.Size = new SizeF(Retangulo.Width.ToPoint(), Retangulo.Height.ToPoint());
+        }
+
+        /// <summary>
+        /// Desenha os créditos no rodapé da página.
+        /// </summary>
+        /// <param name="info">Texto dos créditos a serem exibidos.</param>
+        public void DesenharCreditos(string info) => Gfx.DrawString(info, RetanguloCreditos, Danfe.EstiloPadrao.CriarFonteItalico(6), AlinhamentoHorizontal.Direita);
+
+        /// <summary>
+        /// Desenha o(s) canhoto(s) da nota fiscal.
+        /// O canhoto é a parte destacável para comprovação de recebimento.
+        /// </summary>
+        private void DesenharCanhoto()
+        {
+            if (Danfe.ViewModel.QuantidadeCanhotos == 0) return;
+
+            var canhoto = Danfe.Canhoto;
+            canhoto.SetPosition(RetanguloDesenhavel.Location);
+
+            if (Danfe.ViewModel.Orientacao == Orientacao.Retrato)
+            {
+                // Canhoto horizontal (retrato)
+                canhoto.Width = RetanguloDesenhavel.Width;
+
+                for (int i = 0; i < Danfe.ViewModel.QuantidadeCanhotos; i++)
+                {
+                    canhoto.Draw(Gfx);
+                    canhoto.Y += canhoto.Height;
+                }
+
+                RetanguloDesenhavel = RetanguloDesenhavel.CutTop(canhoto.Height * Danfe.ViewModel.QuantidadeCanhotos);
+            }
+            else
+            {
+                // Canhoto vertical (paisagem)
+                canhoto.Width = RetanguloDesenhavel.Height;
+                Gfx.PrimitiveComposer.BeginLocalState();
+                Gfx.PrimitiveComposer.Rotate(90, new PointF(0, canhoto.Width + canhoto.X + canhoto.Y).ToPointMeasure());
+
+                for (int i = 0; i < Danfe.ViewModel.QuantidadeCanhotos; i++)
+                {
+                    canhoto.Draw(Gfx);
+                    canhoto.Y += canhoto.Height;
+                }
+
+                Gfx.PrimitiveComposer.End();
+                RetanguloDesenhavel = RetanguloDesenhavel.CutLeft(canhoto.Height * Danfe.ViewModel.QuantidadeCanhotos);
+            }
+        }
+
+        /// <summary>
+        /// Desenha o número da página no formato "Folha n/total".
+        /// </summary>
+        /// <param name="n">Número da página atual.</param>
+        /// <param name="total">Total de páginas.</param>
+        public void DesenhaNumeroPaginas(int n, int total)
+        {
+            if (n <= 0) throw new ArgumentOutOfRangeException(nameof(n));
+            if (total <= 0) throw new ArgumentOutOfRangeException(nameof(total));
+            if (n > total) throw new ArgumentOutOfRangeException("O número da página atual deve ser menor que o total.");
+
+            Gfx.DrawString($"Folha {n}/{total}", RetanguloNumeroFolhas, Danfe.EstiloPadrao.FonteNumeroFolhas, AlinhamentoHorizontal.Centro);
+            Gfx.Flush();
+        }
+
+        /// <summary>
+        /// Desenha o aviso de homologação ("SEM VALOR FISCAL") quando a NF-e é de ambiente de testes.
+        /// Conforme item 7.7 do Manual de Orientação do Contribuinte.
+        /// </summary>
+        public void DesenharAvisoHomologacao()
+        {
+            TextStack ts = new TextStack(RetanguloCorpo)
+            {
+                AlinhamentoVertical = AlinhamentoVertical.Centro,
+                AlinhamentoHorizontal = AlinhamentoHorizontal.Centro,
+                LineHeightScale = 0.9F
+            }
+            .AddLine("SEM VALOR FISCAL", Danfe.EstiloPadrao.CriarFonteRegular(48))
+            .AddLine("AMBIENTE DE HOMOLOGAÇÃO", Danfe.EstiloPadrao.CriarFonteRegular(30));
+
+            Gfx.PrimitiveComposer.BeginLocalState();
+            Gfx.PrimitiveComposer.SetFillColor(new org.pdfclown.documents.contents.colorSpaces.DeviceRGBColor(0.35, 0.35, 0.35));
+            ts.Draw(Gfx);
+            Gfx.PrimitiveComposer.End();
+        }
+
+        /// <summary>
+        /// Desenha todos os blocos da página (cabeçalho, destinatário, etc.).
+        /// </summary>
+        /// <param name="isPrimeirapagina">Indica se é a primeira página (para desenhar canhoto e blocos específicos).</param>
+        public void DesenharBlocos(bool isPrimeirapagina = false)
+        {
+            // Desenha canhoto apenas na primeira página
+            if (isPrimeirapagina && Danfe.ViewModel.QuantidadeCanhotos > 0) DesenharCanhoto();
+
+            // Seleciona blocos a desenhar (todos na primeira página, apenas recorrentes nas demais)
+            var blocos = isPrimeirapagina ? Danfe.Blocos : Danfe.Blocos.Where(x => x.VisivelSomentePrimeiraPagina == false);
+
+            foreach (var bloco in blocos)
+            {
+                bloco.Width = RetanguloDesenhavel.Width;
+
+                // Posiciona blocos do topo para baixo ou da base para cima
+                if (bloco.Posicao == PosicaoBloco.Topo)
+                {
+                    bloco.SetPosition(RetanguloDesenhavel.Location);
+                    RetanguloDesenhavel = RetanguloDesenhavel.CutTop(bloco.Height);
+                }
+                else
+                {
+                    bloco.SetPosition(RetanguloDesenhavel.X, RetanguloDesenhavel.Bottom - bloco.Height);
+                    RetanguloDesenhavel = RetanguloDesenhavel.CutBottom(bloco.Height);
+                }
+
+                bloco.Draw(Gfx);
+
+                // Captura retângulo para número de folhas do bloco de identificação
+                if (bloco is BlocoIdentificacaoEmitente)
+                {
+                    var rf = (bloco as BlocoIdentificacaoEmitente).RetanguloNumeroFolhas;
+                    RetanguloNumeroFolhas = rf;
+                }
+            }
+
+            // O espaço restante é para o corpo (tabela de produtos)
+            RetanguloCorpo = RetanguloDesenhavel;
+            Gfx.Flush();
+        }
+    }
+}

@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Drawing;
 using Extensions;
-using HES.Documents.Contents.Composition;
-using HES.Documents.Contents.xObjects;
+using org.pdfclown.documents.contents.composition;
+using org.pdfclown.documents.contents.xObjects;
 
 namespace HES.Graphics
 {
-    public class Gfx
+    /// <summary>
+    /// Classe de abstração gráfica para desenho no PDF usando PDF Clown.
+    /// </summary>
+    internal class Gfx
     {
         public PrimitiveComposer PrimitiveComposer { get; private set; }
 
@@ -15,6 +18,9 @@ namespace HES.Graphics
             PrimitiveComposer = primitiveComposer ?? throw new ArgumentNullException(nameof(primitiveComposer));
         }
 
+        /// <summary>
+        /// Desenha uma string em um retângulo com alinhamento especificado.
+        /// </summary>
         internal void DrawString(string str, RectangleF rect, Fonte fonte, AlinhamentoHorizontal ah = AlinhamentoHorizontal.Esquerda, AlinhamentoVertical av = AlinhamentoVertical.Topo)
         {
             if (fonte == null) throw new ArgumentNullException(nameof(fonte));
@@ -23,14 +29,16 @@ namespace HES.Graphics
 
             var p = rect.Location;
 
+            // Alinhamento vertical
             if (av == AlinhamentoVertical.Base)
                 p.Y = rect.Bottom - fonte.AlturaLinha;
             else if (av == AlinhamentoVertical.Centro)
                 p.Y += (rect.Height - fonte.AlturaLinha) / 2F;
 
+            // Alinhamento horizontal
             if (ah == AlinhamentoHorizontal.Direita)
                 p.X = rect.Right - fonte.MedirLarguraTexto(str);
-            if (ah == AlinhamentoHorizontal.Centro)
+            else if (ah == AlinhamentoHorizontal.Centro)
                 p.X += (rect.Width - fonte.MedirLarguraTexto(str)) / 2F;
 
             SetFont(fonte);
@@ -51,6 +59,9 @@ namespace HES.Graphics
             PrimitiveComposer.ShowText(text, point.ToPointMeasure());
         }
 
+        /// <summary>
+        /// Exibe um XObject (imagem ou formulário) em um retângulo, mantendo proporções.
+        /// </summary>
         public void ShowXObject(XObject xobj, RectangleF r)
         {
             if (xobj == null) throw new ArgumentNullException(nameof(xobj));
@@ -60,6 +71,7 @@ namespace HES.Graphics
             SizeF s = new SizeF();
             SizeF xs = xobj.Size.ToMm();
 
+            // Calcula o tamanho mantendo a proporção do XObject
             if (r.Height >= r.Width)
             {
                 if (xs.Height >= xs.Width)
@@ -87,6 +99,7 @@ namespace HES.Graphics
                 }
             }
 
+            // Centraliza o XObject no retângulo
             p.X = r.X + Math.Abs(r.Width - s.Width) / 2F;
             p.Y = r.Y + Math.Abs(r.Height - s.Height) / 2F;
 
@@ -122,11 +135,24 @@ namespace HES.Graphics
             if (p.X < 0 || p.Y < 0) throw new ArgumentException(nameof(p));
         }
 
+        /// <summary>
+        /// Renderiza o contorno dos objetos desenhados.
+        /// </summary>
         public void Stroke() => PrimitiveComposer.Stroke();
+
+        /// <summary>
+        /// Libera os recursos gráficos pendentes.
+        /// </summary>
         public void Flush() => PrimitiveComposer.Flush();
+
+        /// <summary>
+        /// Preenche os objetos desenhados.
+        /// </summary>
         public void Fill() => PrimitiveComposer.Fill();
+
+        /// <summary>
+        /// Desenha um retângulo com coordenadas e dimensões especificadas.
+        /// </summary>
         public void DrawRectangle(float x, float y, float w, float h) => DrawRectangle(new RectangleF(x, y, w, h));
-
-
     }
 }

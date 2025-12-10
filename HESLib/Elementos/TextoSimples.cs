@@ -26,7 +26,7 @@ namespace HES
 
             if (Extensions.Util.IsValid(Texto))
             {
-                var r = BoundingBox.InflatedRetangle(0, 0, -Estilo.PaddingHorizontal);
+                var r = BoundingBox.InflatedRetangle(Estilo.PaddingSuperior, Estilo.PaddingInferior, Estilo.PaddingHorizontal);
 
                 var tb = new TextBlock(Texto, Estilo.CriarFonteRegular(TamanhoFonte));
                 tb.AlinhamentoHorizontal = AlinhamentoHorizontal;

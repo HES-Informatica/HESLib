@@ -1,7 +1,7 @@
 ﻿using System.Drawing;
 using Extensions.BR;
-using HES.Documents.Contents.xObjects;
 using HES.Modelo;
+using org.pdfclown.documents.contents.xObjects;
 
 namespace HES.Blocos
 {
@@ -16,7 +16,7 @@ namespace HES.Blocos
         public BlocoIdentificacaoEmitente(DANFEModel viewModel, Estilo estilo) : base(viewModel, estilo)
         {
 
-            var textoConsulta = new TextoSimples(Estilo, Extensions.Util.TextoConsulta)
+            var textoConsulta = new TextoSimples(Estilo, Strings.TextoConsulta)
             {
                 Height = 12,
                 AlinhamentoHorizontal = AlinhamentoHorizontal.Centro,
@@ -24,7 +24,7 @@ namespace HES.Blocos
                 TamanhoFonte = 7
             };
 
-            var campoChaveAcesso = new Campo("Chave de Acesso", ViewModel.ChaveAcesso, estilo, AlinhamentoHorizontal.Centro) { Height = Extensions.Util.CampoAltura };
+            var campoChaveAcesso = new Campo("Chave de Acesso", ViewModel.ChaveAcesso, estilo, AlinhamentoHorizontal.Centro) { Height = Constantes.CampoAltura };
             var codigoBarras = new Barcode128C(viewModel.ChaveAcesso, Estilo) { Height = AlturaLinha1 - textoConsulta.Height - campoChaveAcesso.Height };
 
             var coluna3 = new VerticalStack();

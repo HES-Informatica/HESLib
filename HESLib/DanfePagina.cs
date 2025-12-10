@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Drawing;
 using System.Linq;
-using Extensions;
 using HES.Blocos;
-using HES.Documents;
-using HES.Documents.Contents.Composition;
-using HES.Files;
 using HES.Graphics;
+using org.pdfclown.documents;
+using org.pdfclown.documents.contents.composition;
 
 namespace HES
 {
@@ -22,28 +20,30 @@ namespace HES
         public RectangleF RetanguloCreditos { get; private set; }
         public RectangleF Retangulo { get; private set; }
 
-        public DanfePagina(DANFE danfe, PdfFile pdf)
+        public DanfePagina(DANFE danfe)
         {
-            danfe = danfe ?? throw new ArgumentNullException(nameof(pdf));
-            pdf = pdf ?? throw new ArgumentNullException(nameof(danfe));
-            this.Danfe = danfe;
-            PdfPage = new Page(pdf.Document);
-            pdf.Document.Pages.Add(PdfPage);
+            Danfe = danfe ?? throw new ArgumentNullException(nameof(danfe));
+            PdfPage = new Page(Danfe.PdfDocument);
+            Danfe.PdfDocument.Pages.Add(PdfPage);
 
             PrimitiveComposer = new PrimitiveComposer(PdfPage);
             Gfx = new Gfx(PrimitiveComposer);
 
-            if (danfe.ViewModel.Orientacao == Orientacao.Retrato)
-                Retangulo = new RectangleF(0, 0, Extensions.Util.A4Largura, Extensions.Util.A4Altura);
+            if (Danfe.ViewModel.Orientacao == Orientacao.Retrato)
+                Retangulo = new RectangleF(0, 0, Constantes.A4Largura, Constantes.A4Altura);
             else
-                Retangulo = new RectangleF(0, 0, Extensions.Util.A4Altura, Extensions.Util.A4Largura);
+                Retangulo = new RectangleF(0, 0, Constantes.A4Altura, Constantes.A4Largura);
 
-            RetanguloDesenhavel = Retangulo.InflatedRetangle(danfe.ViewModel.Margem);
-            RetanguloCreditos = new RectangleF(RetanguloDesenhavel.X, RetanguloDesenhavel.Bottom + danfe.EstiloPadrao.PaddingSuperior, RetanguloDesenhavel.Width, Retangulo.Height - RetanguloDesenhavel.Height - danfe.EstiloPadrao.PaddingSuperior);
+            RetanguloDesenhavel = Retangulo.InflatedRetangle(Danfe.ViewModel.Margem);
+            RetanguloCreditos = new RectangleF(RetanguloDesenhavel.X, RetanguloDesenhavel.Bottom + Danfe.EstiloPadrao.PaddingSuperior, RetanguloDesenhavel.Width, Retangulo.Height - RetanguloDesenhavel.Height - Danfe.EstiloPadrao.PaddingSuperior);
             PdfPage.Size = new SizeF(Retangulo.Width.ToPoint(), Retangulo.Height.ToPoint());
         }
 
-        public void DesenharCreditos(string info) => Gfx.DrawString(info, RetanguloCreditos, Danfe.EstiloPadrao.CriarFonteItalico(6), AlinhamentoHorizontal.Direita);
+        public void DesenharCreditos()
+        {
+           
+            Gfx.DrawString("Impresso com HES", RetanguloCreditos, Danfe.EstiloPadrao.CriarFonteItalico(6), AlinhamentoHorizontal.Direita);
+        }
 
         private void DesenharCanhoto()
         {
@@ -99,7 +99,7 @@ namespace HES
                         .AddLine("AMBIENTE DE HOMOLOGAÇÃO", Danfe.EstiloPadrao.CriarFonteRegular(30));
 
             Gfx.PrimitiveComposer.BeginLocalState();
-            Gfx.PrimitiveComposer.SetFillColor(new HES.Documents.Contents.ColorSpaces.DeviceRGBColor(0.35, 0.35, 0.35));
+            Gfx.PrimitiveComposer.SetFillColor(new org.pdfclown.documents.contents.colorSpaces.DeviceRGBColor(0.35, 0.35, 0.35));
             ts.Draw(Gfx);
             Gfx.PrimitiveComposer.End();
         }
@@ -108,7 +108,7 @@ namespace HES
         {
             if (isPrimeirapagina && Danfe.ViewModel.QuantidadeCanhotos > 0) DesenharCanhoto();
 
-            var blocos = isPrimeirapagina ? Danfe.Blocos : Danfe.Blocos.Where(x => x.VisivelSomentePrimeiraPagina == false);
+            var blocos = isPrimeirapagina ? Danfe._Blocos : Danfe._Blocos.Where(x => x.VisivelSomentePrimeiraPagina == false);
 
             foreach (var bloco in blocos)
             {

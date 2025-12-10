@@ -104,6 +104,6 @@ namespace HES.Blocos
 
         public RectangleF RetanguloTabela => BoundingBox.CutTop(CabecalhoBloco.Height);
         public bool CompletamenteDesenhada => Tabela.LinhaAtual == ViewModel.Produtos.Count;
-        public override bool PossuiContorno => false;
+        public override bool PossuiContono => false;
     }
 }

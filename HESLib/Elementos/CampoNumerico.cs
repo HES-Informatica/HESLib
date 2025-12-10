@@ -18,7 +18,7 @@ namespace HES.Elementos
 
         protected override void DesenharConteudo(Gfx gfx)
         {
-            base.Conteudo = ConteudoNumerico.HasValue ? ConteudoNumerico.Value.ToString($"N{CasasDecimais}", Extensions.Util.Cultura) : null;
+            base.Conteudo = ConteudoNumerico.HasValue ? ConteudoNumerico.Value.ToString($"N{CasasDecimais}", Utils.Cultura) : null;
             base.DesenharConteudo(gfx);
         }
     }

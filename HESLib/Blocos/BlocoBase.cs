@@ -4,7 +4,6 @@ using HES.Elementos;
 using HES.Graphics;
 using HES.Modelo;
 
-
 namespace HES.Blocos
 {
     /// <summary>
@@ -38,7 +37,7 @@ namespace HES.Blocos
             MainVerticalStack = new VerticalStack();
             ViewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
 
-            if (Cabecalho.IsValid())
+            if (!string.IsNullOrWhiteSpace(Cabecalho))
             {
                 MainVerticalStack.Add(new CabecalhoBloco(estilo, Cabecalho));
             }
@@ -46,11 +45,9 @@ namespace HES.Blocos
 
         public LinhaCampos AdicionarLinhaCampos()
         {
-            var l = new LinhaCampos(Estilo, Width)
-            {
-                Width = Width,
-                Height = Extensions.Util.CampoAltura
-            };
+            var l = new LinhaCampos(Estilo, Width);
+            l.Width = Width;
+            l.Height = Constantes.CampoAltura;
             MainVerticalStack.Add(l);
             return l;
         }
@@ -64,6 +61,6 @@ namespace HES.Blocos
         }
 
         public override float Height { get => MainVerticalStack.Height; set => throw new NotSupportedException(); }
-        public override bool PossuiContorno => false;
+        public override bool PossuiContono => false;
     }
 }

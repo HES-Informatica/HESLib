@@ -23,7 +23,7 @@ namespace HES
             this.Conteudo = conteudo;
             AlinhamentoHorizontalConteudo = alinhamentoHorizontalConteudo;
             IsConteudoNegrito = true;
-            Height = Extensions.Util.CampoAltura;
+            Height = Constantes.CampoAltura;
         }
 
         protected virtual void DesenharCabecalho(Gfx gfx)
