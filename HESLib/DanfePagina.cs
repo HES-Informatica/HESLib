@@ -41,7 +41,7 @@ namespace HES
 
         public void DesenharCreditos()
         {
-           
+            
             Gfx.DrawString("Impresso com HES", RetanguloCreditos, Danfe.EstiloPadrao.CriarFonteItalico(6), AlinhamentoHorizontal.Direita);
         }
 
