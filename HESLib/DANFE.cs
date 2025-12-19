@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Extensions;
 using HES.Blocos;
 using HES.Esquemas;
 using HES.Esquemas.NFe;
@@ -32,6 +33,8 @@ namespace HES
         private bool _FoiGerado;
 
         private org.pdfclown.documents.contents.xObjects.XObject _LogoObject = null;
+
+ 
 
         public DANFE(DANFEModel viewModel)
         {
@@ -262,6 +265,20 @@ namespace HES
             Dispose(true);
             // TODO: uncomment the following line if the finalizer is overridden above.
             // GC.SuppressFinalize(this);
+        }
+
+        public static System.IO.FileInfo GerarPDF(string XMLNota, string XMLCC, string logoPath, System.IO.DirectoryInfo outputDir)
+        {
+            DANFEModel model = DANFEModel.CriarDeArquivoXml(XMLNota, XMLCC);
+            using (DANFE danfe = new DANFE(model))
+            {
+                if (logoPath.IsFilePath() && System.IO.File.Exists(logoPath))
+                    danfe.AdicionarLogoImagem(logoPath);
+                danfe.Gerar();
+                string outputPath = System.IO.Path.Combine(outputDir.FullName, $"DANFE_{model.ChaveAcesso}.pdf");
+                danfe.Salvar(outputPath);
+                return new System.IO.FileInfo(outputPath);
+            }
         }
         #endregion
     }

@@ -25,6 +25,7 @@ namespace HES
 
         public override float Width { get => base.Width; set { base.Width = value; _Height = null; } }
         public AlinhamentoHorizontal AlinhamentoHorizontal { get; set; }
+        public bool NaoQuebrarLinha { get; set; }
 
         public override float Height
         {
@@ -36,7 +37,7 @@ namespace HES
             set => throw new NotSupportedException();
         }
 
-       
+
 
         public override void Draw(Gfx gfx)
         {
@@ -70,7 +71,7 @@ namespace HES
                     w1 = 0;
                 }
 
-                w1 += cw;              
+                w1 += cw;
                 sb1.Append(c[i2]);
             }
 
@@ -90,7 +91,7 @@ namespace HES
                 var wl = blocksW[i];
 
                 if (wl > Width)
-                {                 
+                {
 
                     if (sb.Length > 0)
                     {
@@ -98,7 +99,15 @@ namespace HES
                         sb.Clear();
                     }
 
-                    BreakLongText(w);
+                    if (NaoQuebrarLinha)
+                    {
+                        // Não quebra a linha mesmo que exceda a largura
+                        Lines.Add(w);
+                    }
+                    else
+                    {
+                        BreakLongText(w);
+                    }
                     i++;
                     x = 0;
                 }

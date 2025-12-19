@@ -29,6 +29,8 @@ namespace HES
 
         public const string FormatoMoeda = "#,0.00##";
         public const string FormatoNumero = "#,0.####";
+        public const string FormatoAliquota = "#,0.##";
+        public const string FormatoValorComDuasCasas = "#,0.00";
 
         private static string InternalRegexReplace(string input, string pattern, string replacement)
         {

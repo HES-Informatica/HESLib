@@ -30,7 +30,7 @@ namespace HES.Blocos
                 Tabela
                 .ComColuna(8.5f, ac, "CÓDIGO", "PRODUTO")
                 .ComColuna(0, ae, "DESCRIÇÃO DO PRODUTO / SERVIÇO")
-                .ComColuna(5.6F, ac, "NCM/SH")
+                .ComColunaSemQuebra(5.6F, ac, "NCM/SH")
                 .ComColuna(3.9F, ac, cabecalho4)
                 .ComColuna(3.5F, ac, "CFOP")
                 .ComColuna(3.25F, ac, "UN")
@@ -41,14 +41,14 @@ namespace HES.Blocos
                 .ComColuna(5, ad, "VALOR", "ICMS")
                 .ComColuna(5, ad, "VALOR", "IPI")
                 .ComColuna(3.5F, ad, "ALIQ.", "ICMS")
-                .ComColuna(3.5F, ad, "ALIQ.", "IPI");
+                .ComColunaSemQuebra(3.5F, ad, "ALIQ.", "IPI");
             }
             else
             {
                 Tabela
                 .ComColuna(8.1f, ac, "CÓDIGO PRODUTO")
                 .ComColuna(0, ae, "DESCRIÇÃO DO PRODUTO / SERVIÇO")
-                .ComColuna(5.5F, ac, "NCM/SH")
+                .ComColunaSemQuebra(5.5F, ac, "NCM/SH")
                 .ComColuna(3.1F, ac, cabecalho4)
                 .ComColuna(3.1F, ac, "CFOP")
                 .ComColuna(3F, ac, "UN")
@@ -59,7 +59,7 @@ namespace HES.Blocos
                 .ComColuna(5.6F, ad, "VALOR ICMS")
                 .ComColuna(5.6F, ad, "VALOR IPI")
                 .ComColuna(3F, ad, "ALIQ.", "ICMS")
-                .ComColuna(3F, ad, "ALIQ.", "IPI");
+                .ComColunaSemQuebra(3F, ad, "ALIQ.", "IPI");
             }
 
             Tabela.AjustarLarguraColunas();
@@ -75,13 +75,13 @@ namespace HES.Blocos
                     p.Cfop.Formatar("N0"),
                     p.Unidade,
                     p.Quantidade.Formatar(),
-                    p.ValorUnitario.Formatar(),
-                    p.ValorTotal.Formatar(),
+                    p.ValorUnitario.Formatar(Formatador.FormatoValorComDuasCasas),
+                    p.ValorTotal.Formatar(Formatador.FormatoValorComDuasCasas),
                     p.BaseIcms.Formatar(),
                     p.ValorIcms.Formatar(),
                     p.ValorIpi.Formatar(),
-                    p.AliquotaIcms.Formatar(),
-                    p.AliquotaIpi.Formatar()
+                    p.AliquotaIcms.Formatar(Formatador.FormatoAliquota),
+                    p.AliquotaIpi.Formatar(Formatador.FormatoAliquota)
                 };
 
                 Tabela.AdicionarLinha(linha);

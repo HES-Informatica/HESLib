@@ -49,6 +49,14 @@ namespace HES
             return this;
         }
 
+        public Tabela ComColunaSemQuebra(float larguraP, AlinhamentoHorizontal ah, params string[] cabecalho)
+        {
+            var coluna = new TabelaColuna(cabecalho, larguraP, ah);
+            coluna.NaoQuebrarLinha = true;
+            Colunas.Add(coluna);
+            return this;
+        }
+
         public void AdicionarLinha(List<string> linha)
         {
             if (linha.Count != Colunas.Count) throw new ArgumentException(nameof(linha));
@@ -90,7 +98,8 @@ namespace HES
                         Width = w - 2F * Estilo.PaddingHorizontal,
                         X = x + PaddingHorizontal,
                         Y = _DY + PaddingSuperior,
-                        AlinhamentoHorizontal = c.AlinhamentoHorizontal
+                        AlinhamentoHorizontal = c.AlinhamentoHorizontal,
+                        NaoQuebrarLinha = c.NaoQuebrarLinha
                     };
                 }
 
