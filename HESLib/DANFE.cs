@@ -34,7 +34,7 @@ namespace HES
 
         private org.pdfclown.documents.contents.xObjects.XObject _LogoObject = null;
 
- 
+
 
         public DANFE(DANFEModel viewModel)
         {
@@ -125,7 +125,7 @@ namespace HES
         private void AdicionarMetadata()
         {
             var info = PdfDocument.Information;
-            
+
             //info[new org.pdfclown.objects.PdfName("ChaveAcesso")] = ViewModel.ChaveAcesso;
             //info[new org.pdfclown.objects.PdfName("TipoDocumento")] = "DANFE";
             info.CreationDate = DateTime.Now;
@@ -165,6 +165,10 @@ namespace HES
             _FoiGerado = true;
 
         }
+
+
+        public string Creditos { get; set; }
+
 
         private DanfePagina CriarPagina()
         {
@@ -267,13 +271,14 @@ namespace HES
             // GC.SuppressFinalize(this);
         }
 
-        public static System.IO.FileInfo GerarPDF(string XMLNota, string XMLCC, string logoPath, System.IO.DirectoryInfo outputDir)
+        public static System.IO.FileInfo GerarPDF(string XMLNota, string XMLCC, string logoPath, System.IO.DirectoryInfo outputDir, string Creditos = null)
         {
             DANFEModel model = DANFEModel.CriarDeArquivoXml(XMLNota, XMLCC);
             using (DANFE danfe = new DANFE(model))
             {
                 if (logoPath.IsFilePath() && System.IO.File.Exists(logoPath))
                     danfe.AdicionarLogoImagem(logoPath);
+                danfe.Creditos = Creditos;
                 danfe.Gerar();
                 string outputPath = System.IO.Path.Combine(outputDir.FullName, $"DANFE_{model.ChaveAcesso}.pdf");
                 danfe.Salvar(outputPath);

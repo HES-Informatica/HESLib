@@ -80,7 +80,7 @@ namespace HES
         public Estilo(pcf.Font fontRegular, pcf.Font fontBold, pcf.Font fontItalic, float tamanhoFonteCampoCabecalho = 6, float tamanhoFonteConteudo = 10)
         {
             // Espaçamentos padrão conforme layout do DANFE
-            PaddingHorizontal = 2.5F;
+            PaddingHorizontal = 1.1F;
             PaddingSuperior = 0.65F;
             PaddingInferior = 0.3F;
 

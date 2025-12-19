@@ -110,13 +110,36 @@ namespace HES
             var tbm = tb.Where(t => t != null).Max(t => t.Height);
             if (tbm + _DY + PaddingInferior + PaddingSuperior > BoundingBox.Bottom) return false;
 
+            // posição superior da linha atual
+            float rowTop = _DY;
+            float rowHeight = Math.Max(tbm, FonteCorpo.AlturaLinha) + PaddingSuperior + PaddingInferior;
+            float rowBottom = rowTop + rowHeight;
+
             for (int i = 0; i < Colunas.Count; i++)
             {
                 if (tb[i] != null)
                     tb[i].Draw(gfx);
             }
 
-            _DY += Math.Max(tbm, FonteCorpo.AlturaLinha) + PaddingSuperior + PaddingInferior;
+            // desenha linhas horizontais superior e inferior da linha (grid)
+            gfx.PrimitiveComposer.BeginLocalState();
+            // usa a cor padrão de stroke (preto) para desenhar as linhas horizontais
+            gfx.PrimitiveComposer.SetLineWidth(0.25F);
+            gfx.PrimitiveComposer.DrawLine(new PointF(BoundingBox.Left, rowTop).ToPointMeasure(), new PointF(BoundingBox.Right, rowTop).ToPointMeasure());
+            gfx.PrimitiveComposer.DrawLine(new PointF(BoundingBox.Left, rowBottom).ToPointMeasure(), new PointF(BoundingBox.Right, rowBottom).ToPointMeasure());
+
+            // desenha separadores verticais desta linha (entre colunas)
+            float xSep = BoundingBox.Left;
+            foreach (var coluna in Colunas)
+            {
+                xSep += (Width * coluna.PorcentagemLargura) / 100F;
+                gfx.PrimitiveComposer.DrawLine(new PointF(xSep, rowTop).ToPointMeasure(), new PointF(xSep, rowBottom).ToPointMeasure());
+            }
+            gfx.PrimitiveComposer.DrawLine(new PointF(BoundingBox.Left, rowBottom).ToPointMeasure(), new PointF(BoundingBox.Right, rowBottom).ToPointMeasure());
+            gfx.PrimitiveComposer.Stroke();
+            gfx.PrimitiveComposer.End();
+
+            _DY += rowHeight;
 
             return true;
         }
@@ -134,7 +157,7 @@ namespace HES
                 float w = (Width * coluna.PorcentagemLargura) / 100F;
                 var r = new RectangleF(x, _DY, w, ac);
 
-                var tb = new TextStack(r.InflatedRetangle(1F));
+                var tb = new TextStack(r.InflatedRetangle(0F, 0F, PaddingHorizontal));
                 tb.AlinhamentoVertical = AlinhamentoVertical.Centro;
                 tb.AlinhamentoHorizontal = AlinhamentoHorizontal.Centro;
 
@@ -147,13 +170,19 @@ namespace HES
 
                 x += w;
 
+                // Desenha somente a célula do cabeçalho — a borda externa da tabela será desenhada uma vez abaixo para evitar sobreposições
                 gfx.DrawRectangle(r);
-                gfx.DrawRectangle(r.X, BoundingBox.Y, r.Width, BoundingBox.Height);
             }
+
+            // Desenha borda externa da tabela (uma vez)
+            gfx.DrawRectangle(BoundingBox);
 
             _DY += ac;
 
             gfx.Stroke();
+
+            // garante que a borda externa da tabela seja desenhada
+            gfx.StrokeRectangle(BoundingBox, 0.25F);
         }
 
 

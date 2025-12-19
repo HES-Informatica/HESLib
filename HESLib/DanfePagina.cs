@@ -41,8 +41,15 @@ namespace HES
 
         public void DesenharCreditos()
         {
-            
-            Gfx.DrawString("Impresso com HES", RetanguloCreditos, Danfe.EstiloPadrao.CriarFonteItalico(6), AlinhamentoHorizontal.Direita);
+            if (Danfe != null)
+            {
+                if (Danfe.Creditos == null)
+                {
+                    Danfe.Creditos = "Impresso com HES DANFE";
+                }
+                Gfx.DrawString(Danfe.Creditos, RetanguloCreditos, Danfe.EstiloPadrao.CriarFonteItalico(6), AlinhamentoHorizontal.Direita);
+            }
+
         }
 
         private void DesenharCanhoto()
